@@ -173,22 +173,22 @@ $(document).ready(function () {
 
       // first we draw lines so they are behind the dots
       // phase 1 we fade out the connecting lines and fade in the lines from a single point
-      if (phase % num_phases == 1) {
-        drawLine((change_frames - currentFrame) / change_frames);
-        drawLinesFromSinglePoint(currentFrame / change_frames);
-      // phase 3 we fade out the single point lines and fade in the connecting lines
-      } else if (phase % num_phases == 3) {
-        drawLine(currentFrame / change_frames);
-        drawLinesFromSinglePoint(
-          (change_frames - currentFrame) / change_frames
-        );
-      // any phase but research, connecting lines
-      } else if (phase % num_phases != 2) {
-        drawLine(1);
-      // research, lines come from a single point
-      } else if (phase % num_phases == 2) {
-        drawLinesFromSinglePoint(1);
-      }
+      // if (phase % num_phases == 1) {
+      //   drawLine((change_frames - currentFrame) / change_frames);
+      //   drawLinesFromSinglePoint(currentFrame / change_frames);
+      // // phase 3 we fade out the single point lines and fade in the connecting lines
+      // } else if (phase % num_phases == 3) {
+      //   drawLine(currentFrame / change_frames);
+      //   drawLinesFromSinglePoint(
+      //     (change_frames - currentFrame) / change_frames
+      //   );
+      // // any phase but research, connecting lines
+      // } else if (phase % num_phases != 2) {
+      //   drawLine(1);
+      // // research, lines come from a single point
+      // } else if (phase % num_phases == 2) {
+      //   drawLinesFromSinglePoint(1);
+      // }
 
       // now we draw each dot
       // if we are in an animation phase we calcualte the easing variable and multiply it by the "velocity"
