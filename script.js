@@ -209,8 +209,9 @@ $(document).ready(function () {
         // if in a waiting phase, we draw the dot based off its formula for random motion
         // theres probably a more efficient way of calculating these positions at the start and not having to do it each cycle
         for (i = 0; i < dots.length; i++) {
-          var position = drawDotWithJitter(dots[i]);
-          drawDot(dots[i], position.x, position.y);
+          // var position = drawDotWithJitter(dots[i]);
+          // drawDot(dots[i], position.x, position.y);
+          drawDot(dots[i]);
         }
       }
 
