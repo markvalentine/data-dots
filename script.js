@@ -27,8 +27,8 @@ $(document).ready(function () {
 
 
   // varables for the random drifting
-  var DRIFT_FLOOR = 30;
-  var DRIFT_AMP = 38;
+  var DRIFT_FLOOR = 1;
+  var DRIFT_AMP = 18;
   var DRIFT_VAR_M = 3;
   var DRIFT_VAR_N = 5;
   var DRIFT_VAR_O = 7;
@@ -52,7 +52,7 @@ $(document).ready(function () {
   var heightRatio = canvasHeight / canvasBaseHeight;
 
   // Set the number of frames we want to run
-  var wait_frames = 700;
+  var wait_frames = 400;
   var change_frames = 80;
   var frames = wait_frames;
 
