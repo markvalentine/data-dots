@@ -27,7 +27,8 @@ $(document).ready(function () {
 
 
   // varables for the random drifting
-  var DRIFT_AMP = 10;
+  var DRIFT_FLOOR = 30;
+  var DRIFT_AMP = 38;
   var DRIFT_VAR_M = 3;
   var DRIFT_VAR_N = 5;
   var DRIFT_VAR_O = 7;
@@ -51,7 +52,7 @@ $(document).ready(function () {
   var heightRatio = canvasHeight / canvasBaseHeight;
 
   // Set the number of frames we want to run
-  var wait_frames = 300;
+  var wait_frames = 700;
   var change_frames = 80;
   var frames = wait_frames;
 
@@ -406,7 +407,7 @@ $(document).ready(function () {
         m: getRandomArbitrary(1, DRIFT_VAR_M),
         n: getRandomArbitrary(1, DRIFT_VAR_N),
         o: getRandomArbitrary(1, DRIFT_VAR_O),
-        s: getRandomArbitrary(1, DRIFT_AMP - 3),
+        s: getRandomArbitrary(DRIFT_FLOOR, DRIFT_AMP - 3),
         q: getRandomArbitrary(0, 2),
       };
       dots.push(dot);
@@ -437,7 +438,7 @@ $(document).ready(function () {
         m: getRandomArbitrary(1, DRIFT_VAR_M),
         n: getRandomArbitrary(1, DRIFT_VAR_N),
         o: getRandomArbitrary(1, DRIFT_VAR_O),
-        s: getRandomArbitrary(1, DRIFT_AMP),
+        s: getRandomArbitrary(DRIFT_FLOOR, DRIFT_AMP),
         q: getRandomArbitrary(0, 2),
       };
       dots.push(dot);
@@ -445,6 +446,7 @@ $(document).ready(function () {
 
     for (i = 0; i < num_dots; i++) {
       var dot = {
+        i: i,
         p: [
           {},
           {
@@ -468,7 +470,7 @@ $(document).ready(function () {
         m: getRandomArbitrary(1, DRIFT_VAR_M),
         n: getRandomArbitrary(1, DRIFT_VAR_N),
         o: getRandomArbitrary(1, DRIFT_VAR_O),
-        s: getRandomArbitrary(1, DRIFT_AMP + 3),
+        s: getRandomArbitrary(DRIFT_FLOOR, DRIFT_AMP + 3),
         q: getRandomArbitrary(0, 2),
       };
       dots.push(dot);
@@ -516,6 +518,10 @@ $(document).ready(function () {
     // convert to cartesian coordinates
     var x = r * Math.cos(theta) + dot.c.x;
     var y = r * Math.sin(theta) + dot.c.y;
+
+    // if (dot.i == 80) {
+    //   console.log(x, y);
+    // }
 
     return {
       x: x,
