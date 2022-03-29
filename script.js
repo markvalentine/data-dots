@@ -275,7 +275,7 @@ $(document).ready(function () {
 
     // if coordinates provided, use, if not use dots current location
     // this is because the drifing animation is based off a single point and does not change the "current location"
-    context.drawImage(img, x || dot.c.x, y || dot.c.y);
+    context.drawImage(img, Math.floor(x*100)/100 || dot.c.x, Math.floor(y*100)/100 || dot.c.y);
   }
 
   // draw large background dots
