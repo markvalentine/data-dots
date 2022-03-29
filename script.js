@@ -39,6 +39,8 @@ $(document).ready(function () {
   var canvasWidth = canvas.width();
   var canvasHeight = canvas.height();
   canvas.attr({ height: canvasHeight, width: canvasWidth });
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
   // Size of the drawing in Figma
   var canvasBaseWidth = 1512;
