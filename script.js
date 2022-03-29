@@ -516,8 +516,8 @@ $(document).ready(function () {
     var y = r * Math.sin(theta) + dot.c.y;
 
     return {
-      x: x,
-      y: y,
+      x: Math.floor(x*10)/10,
+      y: Math.floor(y*10)/10,
     };
   }
 
