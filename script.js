@@ -374,8 +374,8 @@ $(document).ready(function () {
       let y = point.absoluteBoundingBox.y - data.y;
 
       data.dots[opacity].unshift({
-        x: x,
-        y: y,
+        x: Math.floor(x),
+        y: Math.floor(y),
         name: index,
       });
     });
@@ -387,8 +387,8 @@ $(document).ready(function () {
       let y = point.absoluteBoundingBox.y - research.y;
 
       research.dots[opacity].unshift({
-        x: x,
-        y: y,
+        x: Math.floor(x),
+        y: Math.floor(y),
         name: index,
       });
     });
@@ -400,8 +400,8 @@ $(document).ready(function () {
       let y = point.absoluteBoundingBox.y - models.y;
 
       models.dots[opacity].unshift({
-        x: x,
-        y: y,
+        x: Math.floor(x),
+        y: Math.floor(y),
         name: index,
       });
     });
