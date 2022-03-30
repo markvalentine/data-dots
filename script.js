@@ -1,7 +1,7 @@
 //348317-3b884c04-e6e4-4a3c-9018-fa99c7b4bbc4
 
 $(document).ready(function () {
-    // Accounts for the difference in the size of the dot in figma and the actual image size
+  // Accounts for the difference in the size of the dot in figma and the actual image size
   var X_DIFF = -30;
   var Y_DIFF = -40;
 
@@ -25,13 +25,45 @@ $(document).ready(function () {
   var LINE_DENSITY_60_RESEARCH = 6;
   var LINE_DENSITY_100_RESEARCH = 4;
 
-
   // varables for the random drifting
   var DRIFT_FLOOR = 1;
-  var DRIFT_AMP = 18;
+  var DRIFT_AMP = 10;
   var DRIFT_VAR_M = 3;
   var DRIFT_VAR_N = 5;
   var DRIFT_VAR_O = 7;
+
+  // Size of the drawing in Figma
+  var FIGMA_WIDTH = 1512;
+  var FIGMA_HEIGHT = 800;
+  
+  var NUM_PHASES = 6;
+
+  // Frames per phase
+  var DRIFT_FRAMES = 400;
+  var MOBILE_DRIFT_FRAMES = 200;
+  var TRANSITION_FRAMES = 80;
+
+  // strings for phases
+  var DATA_STRING = "Reliable Data";
+  var RESEARCH_STRING = "Original Research";
+  var MODELS_STRING = "Battle-Tested Models";
+
+  // number of frames between letters removed when string is animating
+  var STRING_ADD_RATE = 3;
+  var STRING_REMOVE_RATE = 2;
+
+  // ALPHA changes the intensity of the easing animation function
+  var ALPHA = 1;
+
+  // check for mobile
+  var isMobile = false;
+  if (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  ) {
+    isMobile = true;
+  }
 
   // Setup the canvas element.
   var canvas = $("canvas.dots");
@@ -43,20 +75,15 @@ $(document).ready(function () {
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
 
-  // Size of the drawing in Figma
-  var canvasBaseWidth = 1512;
-  var canvasBaseHeight = 800;
-
   //For resizing dot position
-  var widthRatio = canvasWidth / canvasBaseWidth;
-  var heightRatio = canvasHeight / canvasBaseHeight;
-
-  // Set the number of frames we want to run
-  var wait_frames = 400;
-  var change_frames = 80;
-  var frames = wait_frames;
+  var widthRatio = canvasWidth / FIGMA_WIDTH;
+  var heightRatio = canvasHeight / FIGMA_HEIGHT;
 
   // currentFrame tracks the frame rate in any given stage
+  // initialize frames
+  var waitFrames = DRIFT_FRAMES;
+  if (isMobile) waitFrames = MOBILE_DRIFT_FRAMES;
+  var frames = waitFrames;
   var currentFrame = 0;
 
   // phases are as follows:
@@ -67,20 +94,9 @@ $(document).ready(function () {
   // 4: models, drifting, all dots are connected
   // 5: animating from models to data
   var phase = 0;
-  var num_phases = 6;
 
-  // Strings to go with each phase
-  var dataString = "Reliable Data";
-  var researchString = "Original Research";
-  var modelString = "Battle-Tested Models";
-  var currentString = dataString;
-
-  // number of frames between letters removed when string is animating
-  var STRING_ADD_RATE = 3;
-  var STRING_REMOVE_RATE = 2;
-
-  // alpha changes the intensity of the easing animation function
-  let alpha = 1;
+  // Init String
+  var currentString = DATA_STRING;
 
   // convert figma data to readable objects
   var fimgaData = getData(figma);
@@ -89,7 +105,7 @@ $(document).ready(function () {
   var models = fimgaData.models;
 
   //set up our array of dots
-  var num_dots = data.dots["40"].length;
+  var numDots = data.dots["40"].length;
   var dots = [];
   createDots();
 
@@ -100,11 +116,14 @@ $(document).ready(function () {
   var resizing = false;
   var resizeTimer;
 
-  window.addEventListener("resize", function (event) {
+  window.addEventListener(
+    "resize",
+    function (event) {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(resizeDone, 100);
-    }, true
+    },
+    true
   );
 
   function resizeDone() {
@@ -113,7 +132,7 @@ $(document).ready(function () {
 
   // Load in our images
   var imgs = [];
-  var loaded = 0;
+  var numLoaded = 0;
 
   // big background image
   var backgroundDot = new Image();
@@ -136,11 +155,11 @@ $(document).ready(function () {
   imgs.push(small_dot);
 
   // once images are all loaded, we start animating
-  var img_len = imgs.length;
-  for (var i = 0; i < img_len; i++) {
+  var imgsLen = imgs.length;
+  for (var i = 0; i < imgsLen; i++) {
     imgs[i].onload = function (i) {
-      loaded++;
-      if (loaded == img_len) {
+      numLoaded++;
+      if (numLoaded == imgsLen) {
         startAnimation();
       }
     };
@@ -150,8 +169,8 @@ $(document).ready(function () {
   function startAnimation() {
     phase = 0;
     currentFrame = 0;
-    frames = wait_frames;
-    currentString = dataString;
+    frames = waitFrames;
+    currentString = DATA_STRING;
 
     // draw large background dots
     drawBackground();
@@ -176,35 +195,39 @@ $(document).ready(function () {
 
       // first we draw lines so they are behind the dots
       // phase 1 we fade out the connecting lines and fade in the lines from a single point
-      if (phase % num_phases == 1) {
-        drawLine((change_frames - currentFrame) / change_frames);
-        drawLinesFromSinglePoint(currentFrame / change_frames);
-      // phase 3 we fade out the single point lines and fade in the connecting lines
-      } else if (phase % num_phases == 3) {
-        drawLine(currentFrame / change_frames);
+      if (phase % NUM_PHASES == 1) {
+        drawLine((TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES);
+        drawLinesFromSinglePoint(currentFrame / TRANSITION_FRAMES);
+        // phase 3 we fade out the single point lines and fade in the connecting lines
+      } else if (phase % NUM_PHASES == 3) {
+        drawLine(currentFrame / TRANSITION_FRAMES);
         drawLinesFromSinglePoint(
-          (change_frames - currentFrame) / change_frames
+          (TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES
         );
-      // any phase but research, connecting lines
-      } else if (phase % num_phases != 2) {
+        // any phase but research, connecting lines
+      } else if (phase % NUM_PHASES != 2) {
         drawLine(1);
-      // research, lines come from a single point
-      } else if (phase % num_phases == 2) {
+        // research, lines come from a single point
+      } else if (phase % NUM_PHASES == 2) {
         drawLinesFromSinglePoint(1);
       }
 
       // now we draw each dot
       // if we are in an animation phase we calcualte the easing variable and multiply it by the "velocity"
       // theres probably a more efficient way of calculating these positions at the start and not having to do it each cycle
-      if (phase % num_phases == 1 || phase % num_phases == 3 || phase % num_phases == 5) {
+      if (
+        phase % NUM_PHASES == 1 ||
+        phase % NUM_PHASES == 3 ||
+        phase % NUM_PHASES == 5
+      ) {
         var time = currentFrame / frames;
         var e = easeing(time);
         // fixes weird error when e == 0
         if (e < 0.005) e = 0.005;
         // for each dot we add the "velocity" or change in position, then draw the dot
         for (i = 0; i < dots.length; i++) {
-          dots[i].c.x += dots[i].v[phase % num_phases].x * e;
-          dots[i].c.y += dots[i].v[phase % num_phases].y * e;
+          dots[i].c.x += dots[i].v[phase % NUM_PHASES].x * e;
+          dots[i].c.y += dots[i].v[phase % NUM_PHASES].y * e;
 
           drawDot(dots[i]);
         }
@@ -212,7 +235,7 @@ $(document).ready(function () {
         // if in a waiting phase, we draw the dot based off its formula for random motion
         // theres probably a more efficient way of calculating these positions at the start and not having to do it each cycle
         for (i = 0; i < dots.length; i++) {
-          var position = drawDotWithJitter(dots[i]);
+          var position = dotDriftPosition(dots[i]);
           drawDot(dots[i], position.x, position.y);
         }
       }
@@ -226,24 +249,33 @@ $(document).ready(function () {
         phase += 1;
 
         // change string base off phase
-        if (phase % num_phases == 1) {
-          currentString = researchString;
-          frames = change_frames;
-        } else if (phase % num_phases == 3) {
-          currentString = modelString;
-          frames = change_frames;
-        } else if (phase % num_phases == 5) {
-          currentString = dataString;
-          frames = change_frames;
+        if (phase % NUM_PHASES == 1) {
+          currentString = RESEARCH_STRING;
+          frames = TRANSITION_FRAMES;
+        } else if (phase % NUM_PHASES == 3) {
+          currentString = MODELS_STRING;
+          frames = TRANSITION_FRAMES;
+        } else if (phase % NUM_PHASES == 5) {
+          currentString = DATA_STRING;
+          frames = TRANSITION_FRAMES;
         } else {
-          frames = wait_frames;
+          frames = waitFrames;
         }
       }
 
       // string length is based off the number of frames in a phase
       // if the wait phase is coming to an end, the every other frame will result in a letter being removed
-      if (phase % num_phases == 0 || phase % num_phases == 2 || phase % num_phases == 4) {
-        drawText(currentString.slice(0, wait_frames / STRING_REMOVE_RATE - currentFrame / STRING_REMOVE_RATE));
+      if (
+        phase % NUM_PHASES == 0 ||
+        phase % NUM_PHASES == 2 ||
+        phase % NUM_PHASES == 4
+      ) {
+        drawText(
+          currentString.slice(
+            0,
+            waitFrames / STRING_REMOVE_RATE - currentFrame / STRING_REMOVE_RATE
+          )
+        );
       } else {
         // if the animation phase is starting, every third frame a letter will be added
         drawText(currentString.slice(0, currentFrame / STRING_ADD_RATE));
@@ -251,7 +283,6 @@ $(document).ready(function () {
 
       //next frame
       window.requestAnimationFrame(moveDot);
-
     } else {
       // reset our variables on resizing and restart the animation
       canvasWidth = canvas.width();
@@ -266,7 +297,7 @@ $(document).ready(function () {
   function drawDot(dot, x, y) {
     var img = large_dot;
 
-  // change image based off size of dot
+    // change image based off size of dot
     if (dot.size == 40) {
       img = small_dot;
     } else if (dot.size == 60) {
@@ -275,13 +306,21 @@ $(document).ready(function () {
 
     // if coordinates provided, use, if not use dots current location
     // this is because the drifing animation is based off a single point and does not change the "current location"
-    context.drawImage(img, Math.floor(x*100)/100 || Math.floor(dot.c.x*100)/100, Math.floor(y*100)/100 || Math.floor(dot.c.y*100)/100);
+    context.drawImage(
+      img,
+      Math.floor(x * 100) / 100 || Math.floor(dot.c.x * 100) / 100,
+      Math.floor(y * 100) / 100 || Math.floor(dot.c.y * 100) / 100
+    );
   }
 
   // draw large background dots
   function drawBackground() {
     var research_X_DIFF = RESEARCH_DIFF / widthRatio - RESEARCH_DIFF;
-    context.drawImage(backgroundDot, -BACKGROUND_DOT_SIZE_HALVED, -BACKGROUND_DOT_SIZE_HALVED);
+    context.drawImage(
+      backgroundDot,
+      -BACKGROUND_DOT_SIZE_HALVED,
+      -BACKGROUND_DOT_SIZE_HALVED
+    );
     context.drawImage(
       backgroundDot,
       RESEARCH_CENTER_X + X_DIFF - research_X_DIFF - BACKGROUND_DOT_SIZE_HALVED,
@@ -377,12 +416,12 @@ $(document).ready(function () {
   // fills out our dot array and calculates the positions at each phase
   function createDots() {
     dots = [];
-    widthRatio = canvasWidth / canvasBaseWidth;
-    heightRatio = canvasHeight / canvasBaseHeight;
+    widthRatio = canvasWidth / FIGMA_WIDTH;
+    heightRatio = canvasHeight / FIGMA_HEIGHT;
 
     var research_X_DIFF = RESEARCH_DIFF / widthRatio - RESEARCH_DIFF;
 
-    for (i = 0; i < num_dots; i++) {
+    for (i = 0; i < numDots; i++) {
       var dot = {
         p: [
           {},
@@ -413,7 +452,7 @@ $(document).ready(function () {
       dots.push(dot);
     }
 
-    for (i = 0; i < num_dots; i++) {
+    for (i = 0; i < numDots; i++) {
       var dot = {
         p: [
           {},
@@ -444,7 +483,7 @@ $(document).ready(function () {
       dots.push(dot);
     }
 
-    for (i = 0; i < num_dots; i++) {
+    for (i = 0; i < numDots; i++) {
       var dot = {
         i: i,
         p: [
@@ -485,16 +524,16 @@ $(document).ready(function () {
 
     //set velocity by phase
     dot.v[1] = {
-      x: (dot.p[3].x - dot.p[1].x) / change_frames,
-      y: (dot.p[3].y - dot.p[1].y) / change_frames,
+      x: (dot.p[3].x - dot.p[1].x) / TRANSITION_FRAMES,
+      y: (dot.p[3].y - dot.p[1].y) / TRANSITION_FRAMES,
     };
     dot.v[3] = {
-      x: (dot.p[5].x - dot.p[3].x) / change_frames,
-      y: (dot.p[5].y - dot.p[3].y) / change_frames,
+      x: (dot.p[5].x - dot.p[3].x) / TRANSITION_FRAMES,
+      y: (dot.p[5].y - dot.p[3].y) / TRANSITION_FRAMES,
     };
     dot.v[5] = {
-      x: (dot.p[1].x - dot.p[5].x) / change_frames,
-      y: (dot.p[1].y - dot.p[5].y) / change_frames,
+      x: (dot.p[1].x - dot.p[5].x) / TRANSITION_FRAMES,
+      y: (dot.p[1].y - dot.p[5].y) / TRANSITION_FRAMES,
     };
   }
 
@@ -505,103 +544,115 @@ $(document).ready(function () {
 
   // function for the drifting
   // gives random orbits shaped like circles or clovers, or stars with n points based off input variables
-  function drawDotWithJitter(dot) {
-    var theta = (1 * Math.PI * currentFrame) / wait_frames;
+  function dotDriftPosition(dot) {
+    if (!isMobile) {
+      var theta = (1 * Math.PI * currentFrame) / waitFrames;
 
-    // change direction of orbit (looks weird when they all go clockwise)
-    if (!dot.q) {
-      theta = 1 * Math.PI - theta;
+      // change direction of orbit (looks weird when they all go clockwise)
+      if (!dot.q) {
+        theta = 1 * Math.PI - theta;
+      }
+
+      var r =
+        dot.s *
+        (Math.sin(dot.m * theta) + (1 / dot.n) * Math.sin(theta / dot.o));
+
+      // convert to cartesian coordinates
+      var x = r * Math.cos(theta) + dot.c.x;
+      var y = r * Math.sin(theta) + dot.c.y;
+
+      // if (dot.i == 80) {
+      //   console.log(x, y);
+      // }
+
+      return {
+        x: Math.floor(x * 100) / 100,
+        y: Math.floor(y * 100) / 100,
+      };
+    } else {
+      return {
+        x: dot.c.x,
+        y: dot.c.y,
+      };
     }
-
-    var r = dot.s * (Math.sin(dot.m * theta) + (1 / dot.n) * Math.sin(theta / dot.o));
-
-    // convert to cartesian coordinates
-    var x = r * Math.cos(theta) + dot.c.x;
-    var y = r * Math.sin(theta) + dot.c.y;
-
-    // if (dot.i == 80) {
-    //   console.log(x, y);
-    // }
-
-    return {
-      x: Math.floor(x*100)/100,
-      y: Math.floor(y*100)/100,
-    };
   }
 
   function easeing(t) {
-    var sqr = Math.pow(t, alpha);
-    var sqrminus = Math.pow(1 - t, alpha);
-    return (sqr / (sqr + sqrminus))/(.5);
+    var sqr = Math.pow(t, ALPHA);
+    var sqrminus = Math.pow(1 - t, ALPHA);
+    return sqr / (sqr + sqrminus) / 0.5;
   }
 
   function drawLine(opacity) {
     if (!opacity) opacity = 0;
 
     // lines for background dots
-    context.strokeStyle = "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
+    context.strokeStyle =
+      "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
     context.beginPath();
     for (i = 0; i < dots.length / 3; i++) {
       // for most phases we do groupings of dots
       if (
-        (phase % num_phases == 0 ||
-          phase % num_phases == 1 ||
-          phase % num_phases == 2 ||
-          phase % num_phases == 3 ||
-          phase % num_phases == 5) &&
+        (phase % NUM_PHASES == 0 ||
+          phase % NUM_PHASES == 1 ||
+          phase % NUM_PHASES == 2 ||
+          phase % NUM_PHASES == 3 ||
+          phase % NUM_PHASES == 5) &&
         i % LINE_GROUPINGS_40 == 0
       ) {
         // end and start new stroke to define new grouping
         context.stroke();
         context.beginPath();
       } else {
-        var position = drawDotWithJitter(dots[i]);
+        var position = dotDriftPosition(dots[i]);
         context.lineTo(position.x + 30, position.y + 30);
       }
     }
     context.stroke();
 
     // lines for midground dots
-    context.strokeStyle = "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
+    context.strokeStyle =
+      "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
     context.beginPath();
     for (i = 0; i < dots.length / 3; i++) {
       // for most phases we do groupings of dots
       if (
-        (phase % num_phases == 0 ||
-          phase % num_phases == 1 ||
-          phase % num_phases == 2 ||
-          phase % num_phases == 3 ||
-          phase % num_phases == 5) &&
+        (phase % NUM_PHASES == 0 ||
+          phase % NUM_PHASES == 1 ||
+          phase % NUM_PHASES == 2 ||
+          phase % NUM_PHASES == 3 ||
+          phase % NUM_PHASES == 5) &&
         i % LINE_GROUPINGS_60 == 0
       ) {
         // end and start new stroke to define new grouping
         context.stroke();
         context.beginPath();
       } else {
-        var position = drawDotWithJitter(dots[dots.length / 3 + i]);
+        var position = dotDriftPosition(dots[dots.length / 3 + i]);
         context.lineTo(position.x + 30.5, position.y + 30.5);
       }
     }
     context.stroke();
 
     // lines for foreground dots
-    context.strokeStyle = "rgba(0, 195, 137, " + LINE_OPACITY_100 * opacity + ")";
+    context.strokeStyle =
+      "rgba(0, 195, 137, " + LINE_OPACITY_100 * opacity + ")";
     context.beginPath();
     for (i = 0; i < dots.length / 3; i++) {
-        // for most phases we do groupings of dots
+      // for most phases we do groupings of dots
       if (
-        (phase % num_phases == 0 ||
-          phase % num_phases == 1 ||
-          phase % num_phases == 2 ||
-          phase % num_phases == 3 ||
-          phase % num_phases == 5) &&
+        (phase % NUM_PHASES == 0 ||
+          phase % NUM_PHASES == 1 ||
+          phase % NUM_PHASES == 2 ||
+          phase % NUM_PHASES == 3 ||
+          phase % NUM_PHASES == 5) &&
         i % LINE_GROUPINGS_100 == 0
       ) {
         // end and start new stroke to define new grouping
         context.stroke();
         context.beginPath();
       } else {
-        var position = drawDotWithJitter(dots[(2 * dots.length) / 3 + i]);
+        var position = dotDriftPosition(dots[(2 * dots.length) / 3 + i]);
         context.lineTo(position.x + 32.5, position.y + 32.5);
       }
     }
@@ -615,12 +666,13 @@ $(document).ready(function () {
     var center_y = RESEARCH_CENTER_Y + Y_DIFF;
 
     // lines for the middle dots only.  Opacity is lower because it was distracting otherwise
-    context.strokeStyle = "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
+    context.strokeStyle =
+      "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
     for (i = 0; i < dots.length / 3; i++) {
       if (i % LINE_DENSITY_60_RESEARCH == 0) {
         context.beginPath();
         context.moveTo(center_x, center_y);
-        var position = drawDotWithJitter(dots[dots.length / 3 + i]);
+        var position = dotDriftPosition(dots[dots.length / 3 + i]);
         context.lineTo(position.x + 30.5, position.y + 30.5);
         context.stroke();
       }
@@ -628,12 +680,13 @@ $(document).ready(function () {
     context.stroke();
 
     // lines for the foreground dots only.  Opacity is lower because it was distracting otherwise
-    context.strokeStyle = "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
+    context.strokeStyle =
+      "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
     for (i = 0; i < dots.length / 3; i++) {
       if (i % LINE_DENSITY_100_RESEARCH == 0) {
         context.beginPath();
         context.moveTo(center_x, center_y);
-        var position = drawDotWithJitter(dots[(2 * dots.length) / 3 + i]);
+        var position = dotDriftPosition(dots[(2 * dots.length) / 3 + i]);
         context.lineTo(position.x + 32.5, position.y + 32.5);
         context.stroke();
       }
@@ -660,7 +713,7 @@ $(document).ready(function () {
 //   }
 
 //   function randomPositionBoundBySin(i) {
-//     var x = (canvasWidth / num_dots) * i;
+//     var x = (canvasWidth / numDots) * i;
 //     var y =
 //       100 * Math.sin((x / canvasWidth) * Math.PI * 3) +
 //       (canvasHeight / 4) * 3 +
@@ -672,7 +725,7 @@ $(document).ready(function () {
 //     };
 //   }
 
-// for (i = 0; i < num_dots; i++) {
+// for (i = 0; i < numDots; i++) {
 //     var dot = {
 //         p: [
 //                 {},
