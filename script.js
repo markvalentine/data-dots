@@ -84,6 +84,8 @@ $(document).ready(function () {
   var frames = waitFrames;
   var currentFrame = 0;
 
+  var imgMultiplier = 1;
+
   // phases are as follows:
   // 0: data, dots drifting
   // 1: animating from data to research
@@ -168,9 +170,9 @@ $(document).ready(function () {
     imgs[i].onload = function (i) {
       numLoaded++;
       if (numLoaded == imgsLen) {
-        largeDotOffset = largeDot.width / 2;
-        medDotOffset = medDot.width / 2;
-        smallDotOffset = smallDot.width / 2;
+        largeDotOffset = largeDot.width / 2 * imgMultiplier;
+        medDotOffset = medDot.width / 2 * imgMultiplier;
+        smallDotOffset = smallDot.width / 2 * imgMultiplier;
         startAnimation();
       }
     };
@@ -301,6 +303,13 @@ $(document).ready(function () {
       canvasWidth = canvas.width();
       canvasHeight = canvas.height();
       canvas.attr({ height: canvasHeight, width: canvasWidth });
+
+      if(isMobile) imgMultiplier = canvasWidth / FIGMA_WIDTH;
+
+      largeDotOffset = largeDot.width / 2 * imgMultiplier;
+      medDotOffset = medDot.width / 2 * imgMultiplier;
+      smallDotOffset = smallDot.width / 2 * imgMultiplier;
+
       resizing = false;
       createDots();
       startAnimation();
@@ -309,17 +318,22 @@ $(document).ready(function () {
 
   function drawDot(dot, x, y) {
     var img = largeDot;
+    var size = largeDot.width * imgMultiplier;
 
     // change image based off size of dot
     if (dot.size == 40) {
       img = smallDot;
+      size = smallDot.width * imgMultiplier
     } else if (dot.size == 60) {
       img = medDot;
+      size = medDot.width * imgMultiplier
     }
+
+    
 
     // if coordinates provided, use, if not use dots current location
     // this is because the drifing animation is based off a single point and does not change the "current location"
-    context.drawImage(img, x || dot.c.x, y || dot.c.y);
+    context.drawImage(img, x || dot.c.x, y || dot.c.y, size, size);
   }
 
   // draw large background dots
@@ -350,6 +364,7 @@ $(document).ready(function () {
     dots = [];
     widthRatio = canvasWidth / FIGMA_WIDTH;
     heightRatio = canvasHeight / FIGMA_HEIGHT;
+    if (isMobile) imgMultiplier = widthRatio;
 
     var research_X_OFFSET =
       BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
