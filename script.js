@@ -85,9 +85,9 @@ $(document).ready(function () {
   var currentFrame = 0;
 
   // phases are as follows:
-  // 0: data, dots drifting dots are connected in groups of 3
+  // 0: data, dots drifting
   // 1: animating from data to research
-  // 2: research, drifting dots are connected to a single point
+  // 2: research, drifting dots are connected in clusters of 5
   // 3: animating from research to models
   // 4: models, drifting, all dots are connected
   // 5: animating from models to data
@@ -110,7 +110,9 @@ $(document).ready(function () {
 
   // For Modulo Stuff for line clustering animations etc.
   var clusterModulo = Math.floor(numDotsPerGroup / (NUM_CLUSTERS - 1));
-  var verticesPerClusterModulo = Math.floor(clusterModulo/NUM_VERTICES_PER_CLUSTER);
+  var verticesPerClusterModulo = Math.floor(
+    clusterModulo / NUM_VERTICES_PER_CLUSTER
+  );
 
   // resizing the canvas has some weird issues when trying to cancel
   // the animation at each resize event
@@ -202,31 +204,27 @@ $(document).ready(function () {
     if (!resizing) {
       drawBackground();
 
-
       // first we draw lines so they are behind the dots
       if (phase % NUM_PHASES == 2) {
-        // in the second phase we connect the dots to represent "research"
+        // in the second phase we connect the dots in clusters to represetn "research"
         connectTheDotsInClusters(1, false);
-
       } else if (phase % NUM_PHASES == 3) {
-
-        // in the third phase we phade out connected dots and fade in full line
-        // connectDotsInSingleLine(currentFrame / TRANSITION_FRAMES);
+        // in the third phase we phade out connected dots
         connectTheDotsInClusters(
-          (TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES, true
+          (TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES,
+          true
         );
-        
-      } else if (phase % NUM_PHASES == 4 ) {
-        // in the fourth phase we show dots connected in a line
+      } else if (phase % NUM_PHASES == 4) {
+        // in the fourth phase we animate in the line graph
         connectDotsInSingleLine(1, false);
-
       } else if (phase % NUM_PHASES == 5) {
         // in phase 5 we fade out the remaining lines
-        connectDotsInSingleLine((TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES, true);
-        
-      } 
+        connectDotsInSingleLine(
+          (TRANSITION_FRAMES - currentFrame) / TRANSITION_FRAMES,
+          true
+        );
+      }
 
-      
       // now we draw each dot
       // if we are in an animation phase we calcualte the easing variable and multiply it by the "velocity"
       // theres probably a more efficient way of calculating these positions at the start and not having to do it each cycle
@@ -321,16 +319,13 @@ $(document).ready(function () {
 
     // if coordinates provided, use, if not use dots current location
     // this is because the drifing animation is based off a single point and does not change the "current location"
-    context.drawImage(
-      img,
-      x || dot.c.x,
-      y || dot.c.y
-    );
+    context.drawImage(img, x || dot.c.x, y || dot.c.y);
   }
 
   // draw large background dots
   function drawBackground() {
-    var backgroundXOffset = BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
+    var backgroundXOffset =
+      BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
     context.drawImage(
       backgroundDot,
       -BACKGROUND_DOT_SIZE_HALVED,
@@ -338,7 +333,10 @@ $(document).ready(function () {
     );
     context.drawImage(
       backgroundDot,
-      BACKGROUND_DOT_CENTER_X + X_OFFSET - backgroundXOffset - BACKGROUND_DOT_SIZE_HALVED,
+      BACKGROUND_DOT_CENTER_X +
+        X_OFFSET -
+        backgroundXOffset -
+        BACKGROUND_DOT_SIZE_HALVED,
       BACKGROUND_DOT_CENTER_Y + Y_OFFSET - BACKGROUND_DOT_SIZE_HALVED
     );
   }
@@ -353,7 +351,8 @@ $(document).ready(function () {
     widthRatio = canvasWidth / FIGMA_WIDTH;
     heightRatio = canvasHeight / FIGMA_HEIGHT;
 
-    var research_X_OFFSET = BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
+    var research_X_OFFSET =
+      BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
 
     for (i = 0; i < numDotsPerGroup; i++) {
       var dot = {
@@ -365,8 +364,8 @@ $(document).ready(function () {
           },
           {},
           {
-            x: research.dots["40"][i].x + X_OFFSET - research_X_OFFSET,
-            y: research.dots["40"][i].y + Y_OFFSET,
+            x: research.dots["40"][i].x * widthRatio + X_OFFSET,
+            y: research.dots["40"][i].y * heightRatio + Y_OFFSET,
           },
           {},
           {
@@ -396,8 +395,8 @@ $(document).ready(function () {
           },
           {},
           {
-            x: research.dots["60"][i].x + X_OFFSET - research_X_OFFSET,
-            y: research.dots["60"][i].y + Y_OFFSET,
+            x: research.dots["60"][i].x * widthRatio + X_OFFSET,
+            y: research.dots["60"][i].y * heightRatio + Y_OFFSET,
           },
           {},
           {
@@ -428,8 +427,8 @@ $(document).ready(function () {
           },
           {},
           {
-            x: research.dots["100"][i].x + X_OFFSET - research_X_OFFSET,
-            y: research.dots["100"][i].y + Y_OFFSET,
+            x: research.dots["100"][i].x * widthRatio + X_OFFSET,
+            y: research.dots["100"][i].y * heightRatio + Y_OFFSET,
           },
           {},
           {
@@ -536,7 +535,7 @@ $(document).ready(function () {
       "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
     context.beginPath();
     for (i = 0; i < min; i++) {
-      var position = dotDriftPosition(dots[(2*numDotsPerGroup) - i - 1]);
+      var position = dotDriftPosition(dots[2 * numDotsPerGroup - i - 1]);
       context.lineTo(position.x + medDotOffset, position.y + medDotOffset);
     }
     context.stroke();
@@ -546,7 +545,7 @@ $(document).ready(function () {
       "rgba(0, 195, 137, " + LINE_OPACITY_100 * opacity + ")";
     context.beginPath();
     for (i = 0; i < min; i++) {
-      var position = dotDriftPosition(dots[(3 * numDotsPerGroup) - i - 1]);
+      var position = dotDriftPosition(dots[3 * numDotsPerGroup - i - 1]);
       context.lineTo(position.x + largeDotOffset, position.y + largeDotOffset);
     }
     context.stroke();
@@ -554,10 +553,9 @@ $(document).ready(function () {
 
   // connects the dots in clusters of 5, with a central dot connected to the other 4
   function connectTheDotsInClusters(opacity, dotsAreAlreadyConnected) {
-
     // getting the min here lets us animate the line in by connecting a new dot every LINE_ANIMATION_RATE frames
     let min = Math.min(numDotsPerGroup, currentFrame / LINE_ANIMATION_RATE);
-    if (dotsAreAlreadyConnected == true) min = numDotsPerGroup
+    if (dotsAreAlreadyConnected == true) min = numDotsPerGroup;
 
     // lines for the foreground dots only
     context.strokeStyle =
@@ -565,12 +563,18 @@ $(document).ready(function () {
     var center = {};
     context.beginPath();
     for (i = 0; i < min; i++) {
-      var position = dotDriftPosition(dots[(2*numDotsPerGroup) + i]);
-      if(i%clusterModulo == 0) {
-        center = {x: position.x + largeDotOffset, y: position.y + largeDotOffset};
-      } else if ( (i%clusterModulo)%verticesPerClusterModulo == 1 ) {
+      var position = dotDriftPosition(dots[2 * numDotsPerGroup + i]);
+      if (i % clusterModulo == 0) {
+        center = {
+          x: position.x + largeDotOffset,
+          y: position.y + largeDotOffset,
+        };
+      } else if ((i % clusterModulo) % verticesPerClusterModulo == 1) {
         context.moveTo(center.x, center.y);
-        context.lineTo(position.x + largeDotOffset, position.y + largeDotOffset);
+        context.lineTo(
+          position.x + largeDotOffset,
+          position.y + largeDotOffset
+        );
       }
     }
     context.stroke();
@@ -656,7 +660,6 @@ $(document).ready(function () {
       models: models,
     };
   }
-
 });
 
 //   // Placement limits for random positioning
@@ -711,7 +714,6 @@ $(document).ready(function () {
 //     dots.push(dot);
 // }
 
-
 // function connectTheDots(opacity) {
 //   // lines for foreground dots
 //   context.strokeStyle =
@@ -732,37 +734,37 @@ $(document).ready(function () {
 //   context.stroke();
 // }
 
-  // // For the research phase
-  // function drawLinesFromSinglePoint(opacity) {
-  //   var research_X_OFFSET = BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
-  //   var center_x = BACKGROUND_DOT_CENTER_X + X_OFFSET - research_X_OFFSET;
-  //   var center_y = BACKGROUND_DOT_CENTER_Y + Y_OFFSET;
+// // For the research phase
+// function drawLinesFromSinglePoint(opacity) {
+//   var research_X_OFFSET = BACKGROUND_DOT_OFFSET / widthRatio - BACKGROUND_DOT_OFFSET;
+//   var center_x = BACKGROUND_DOT_CENTER_X + X_OFFSET - research_X_OFFSET;
+//   var center_y = BACKGROUND_DOT_CENTER_Y + Y_OFFSET;
 
-  //   // lines for the middle dots only.  Opacity is lower because it was distracting otherwise
-  //   context.strokeStyle =
-  //     "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
-  //   for (i = 0; i < numDotsPerGroup; i++) {
-  //     if (i % LINE_DENSITY_60_RESEARCH == 0) {
-  //       context.beginPath();
-  //       context.moveTo(center_x, center_y);
-  //       var position = dotDriftPosition(dots[numDotsPerGroup + i]);
-  //       context.lineTo(position.x + medDotOffset, position.y + medDotOffset);
-  //       context.stroke();
-  //     }
-  //   }
-  //   context.stroke();
+//   // lines for the middle dots only.  Opacity is lower because it was distracting otherwise
+//   context.strokeStyle =
+//     "rgba(0, 195, 137, " + LINE_OPACITY_40 * opacity + ")";
+//   for (i = 0; i < numDotsPerGroup; i++) {
+//     if (i % LINE_DENSITY_60_RESEARCH == 0) {
+//       context.beginPath();
+//       context.moveTo(center_x, center_y);
+//       var position = dotDriftPosition(dots[numDotsPerGroup + i]);
+//       context.lineTo(position.x + medDotOffset, position.y + medDotOffset);
+//       context.stroke();
+//     }
+//   }
+//   context.stroke();
 
-  //   // lines for the foreground dots only.  Opacity is lower because it was distracting otherwise
-  //   context.strokeStyle =
-  //     "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
-  //   for (i = 0; i < numDotsPerGroup; i++) {
-  //     if (i % LINE_DENSITY_100_RESEARCH == 0) {
-  //       context.beginPath();
-  //       context.moveTo(center_x, center_y);
-  //       var position = dotDriftPosition(dots[(2 * numDots) / 3 + i]);
-  //       context.lineTo(position.x + largeDotOffset, position.y + largeDotOffset);
-  //       context.stroke();
-  //     }
-  //   }
-  //   context.stroke();
-  // }
+//   // lines for the foreground dots only.  Opacity is lower because it was distracting otherwise
+//   context.strokeStyle =
+//     "rgba(0, 195, 137, " + LINE_OPACITY_60 * opacity + ")";
+//   for (i = 0; i < numDotsPerGroup; i++) {
+//     if (i % LINE_DENSITY_100_RESEARCH == 0) {
+//       context.beginPath();
+//       context.moveTo(center_x, center_y);
+//       var position = dotDriftPosition(dots[(2 * numDots) / 3 + i]);
+//       context.lineTo(position.x + largeDotOffset, position.y + largeDotOffset);
+//       context.stroke();
+//     }
+//   }
+//   context.stroke();
+// }
