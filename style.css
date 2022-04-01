@@ -23,7 +23,7 @@ body {
   margin: auto;
   max-height: 800px;
   min-height: 600px;
-  min-width: 800px;
+  min-width: 1000px;
   background-color: #3b0065;
 }
 
@@ -65,5 +65,14 @@ body {
     left: 40px;
     top: 80px;
     font-size: 48px;
+  }
+}
+
+@media only screen and (max-width: 340px) {
+
+  .text {
+    left: 20px;
+    top: 80px;
+    font-size: 40px;
   }
 }
